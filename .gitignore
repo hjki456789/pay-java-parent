@@ -47,3 +47,4 @@ test
 # SVN
 .svn
 .settings
+pay-java-web/src/main/resources/rebel.xml
