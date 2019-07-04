@@ -48,3 +48,7 @@ test
 .svn
 .settings
 pay-java-web/src/main/resources/rebel.xml
+pay-vue-wap/node_modules/
+pay-vue-operation/node_modules/
+pay-vue-operation/dist/
+pay-vue-wap/dist/
