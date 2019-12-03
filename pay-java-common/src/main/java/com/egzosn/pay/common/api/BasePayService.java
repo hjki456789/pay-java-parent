@@ -5,11 +5,13 @@ import com.egzosn.pay.common.bean.*;
 import com.egzosn.pay.common.exception.PayErrorException;
 import com.egzosn.pay.common.http.HttpConfigStorage;
 import com.egzosn.pay.common.http.HttpRequestTemplate;
+import com.egzosn.pay.common.util.MatrixToImageWriter;
 import com.egzosn.pay.common.util.sign.SignUtils;
 import com.egzosn.pay.common.util.str.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
+import java.awt.image.BufferedImage;
 import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
 import java.math.BigDecimal;
@@ -136,9 +138,20 @@ public abstract class BasePayService<PC extends PayConfigStorage> implements Pay
      * @return 对应页面重定向信息
      */
     @Override
-    public String toPay(PayOrder order) {
+    public <O extends PayOrder> String toPay(O order) {
         Map orderInfo = orderInfo(order);
         return buildRequest(orderInfo, MethodType.POST);
+    }
+
+    /**
+     * 生成二维码支付
+     *
+     * @param order 发起支付的订单信息
+     * @return 返回图片信息，支付时需要的
+     */
+    @Override
+    public <O extends PayOrder> BufferedImage genQrPay(O order) {
+       return MatrixToImageWriter.writeInfoToJpgBuff(getQrPay(order));
     }
 
     /**
@@ -441,4 +454,17 @@ public abstract class BasePayService<PC extends PayConfigStorage> implements Pay
     public PayMessage createMessage(Map<String, Object> message) {
         return new PayMessage(message);
     }
+
+    /**
+     * 预订单回调处理器，用于订单信息的扩展
+     * 签名之前使用
+     *  如果需要进行扩展请重写该方法即可
+     * @param orderInfo 预订单信息
+     * @param orderInfo 订单信息
+     * @return 处理后订单信息
+     */
+    public <O extends PayOrder> Map<String, Object> preOrderHandler(Map<String, Object> orderInfo, O payOrder){
+        return orderInfo;
+    }
+
 }

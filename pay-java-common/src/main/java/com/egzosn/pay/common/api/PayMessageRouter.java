@@ -124,12 +124,13 @@ public class PayMessageRouter {
      * 处理支付消息
      *
      * @param payMessage 支付消息
+     * @param storage 支付配置
      * @return 支付输出结果
      */
     public PayOutMessage route(Map<String, Object> payMessage, PayConfigStorage storage) {
         PayMessage message = payService.createMessage(payMessage);
         message.setPayType(storage.getPayType());
-        if (null == storage.getMsgType()){
+        if (null != storage.getMsgType()){
             message.setMsgType(storage.getMsgType().name());
         }
         return route(message);

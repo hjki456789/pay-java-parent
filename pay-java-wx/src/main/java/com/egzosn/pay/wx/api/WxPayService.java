@@ -101,6 +101,7 @@ public class WxPayService extends BasePayService<WxPayConfigStorage> {
      * @param transactionType 交易类型
      * @return 请求url
      */
+    @Override
     public String getReqUrl(TransactionType transactionType) {
 
         return URI + (payConfigStorage.isTest() ? SANDBOXNEW : "") + transactionType.getMethod();
@@ -179,9 +180,11 @@ public class WxPayService extends BasePayService<WxPayConfigStorage> {
         parameters.put(APPID, payConfigStorage.getAppid());
         parameters.put(MCH_ID, payConfigStorage.getMchId());
         //判断如果是服务商模式信息则加入
-        if (!StringUtils.isEmpty(payConfigStorage.getSubAppid()) && !StringUtils.isEmpty(payConfigStorage.getSubMchId())) {
-            parameters.put("sub_appid", payConfigStorage.getSubAppid());
+        if (!StringUtils.isEmpty(payConfigStorage.getSubMchId())) {
             parameters.put("sub_mch_id", payConfigStorage.getSubMchId());
+        }
+        if (!StringUtils.isEmpty(payConfigStorage.getSubAppid())) {
+            parameters.put("sub_appid", payConfigStorage.getSubAppid());
         }
         parameters.put(NONCE_STR, SignUtils.randomStr());
         return parameters;
@@ -219,18 +222,19 @@ public class WxPayService extends BasePayService<WxPayConfigStorage> {
             parameters.put("time_expire", DateUtils.formatDate(order.getExpirationTime(), DateUtils.YYYYMMDDHHMMSS));
         }
         ((WxTransactionType) order.getTransactionType()).setAttribute(parameters, order);
-
+        parameters =  preOrderHandler(parameters, order);
         setSign(parameters);
 
         String requestXML = XML.getMap2Xml(parameters);
         if (LOG.isDebugEnabled()) {
             LOG.debug("requestXML：" + requestXML);
         }
+
         //调起支付的参数列表
         JSONObject result = requestTemplate.postForObject(getReqUrl(order.getTransactionType()), requestXML, JSONObject.class);
 
-        if (!SUCCESS.equals(result.get(RETURN_CODE))) {
-            throw new PayErrorException(new WxPayError(result.getString(RETURN_CODE), result.getString(RETURN_MSG_CODE), result.toJSONString()));
+        if (!SUCCESS.equals(result.get(RETURN_CODE)) || !SUCCESS.equals(result.get(RESULT_CODE))) {
+            throw new PayErrorException(new WxPayError(result.getString(RESULT_CODE), result.getString(RETURN_MSG_CODE), result.toJSONString()));
         }
         return result;
     }
@@ -248,15 +252,14 @@ public class WxPayService extends BasePayService<WxPayConfigStorage> {
 
         ////统一下单
         JSONObject result = unifiedOrder(order);
-
         // 对微信返回的数据进行校验
-        if (verify(result)) {
+        if (verify(preOrderHandler(result, order))) {
             //如果是扫码支付或者刷卡付无需处理，直接返回
             if (((WxTransactionType) order.getTransactionType()).isReturn()) {
                 return result;
             }
 
-            SortedMap<String, Object> params = new TreeMap<String, Object>();
+            Map<String, Object> params = new TreeMap<String, Object>();
 
             if (WxTransactionType.JSAPI == order.getTransactionType()) {
                 params.put("signType", payConfigStorage.getSignType());
@@ -272,6 +275,7 @@ public class WxPayService extends BasePayService<WxPayConfigStorage> {
                 params.put("noncestr", result.get(NONCE_STR));
                 params.put("package", "Sign=WXPay");
             }
+            params =  preOrderHandler(params, order);
             String paySign = createSign(SignUtils.parameterText(params), payConfigStorage.getInputCharset());
             params.put(SIGN, paySign);
             return params;
@@ -416,23 +420,20 @@ public class WxPayService extends BasePayService<WxPayConfigStorage> {
     }
 
     /**
-     * 获取输出二维码，用户返回给支付端,
+     * 获取输出二维码信息,
      *
      * @param order 发起支付的订单信息
-     * @return 返回图片信息，支付时需要的
+     * @return 返回二维码信息,，支付时需要的
      */
     @Override
-    public BufferedImage genQrPay(PayOrder order) {
+    public String getQrPay(PayOrder order){
         Map<String, Object> orderInfo = orderInfo(order);
         //获取对应的支付账户操作工具（可根据账户id）
         if (!SUCCESS.equals(orderInfo.get(RESULT_CODE))) {
-            throw new PayErrorException(new WxPayError("-1", (String) orderInfo.get("err_code")));
+            throw new PayErrorException(new WxPayError((String)orderInfo.get("err_code"), orderInfo.toString()));
         }
-
-
-        return MatrixToImageWriter.writeInfoToJpgBuff((String) orderInfo.get("code_url"));
+        return (String) orderInfo.get("code_url");
     }
-
     /**
      * 刷卡付,pos主动扫码付款
      *
@@ -526,6 +527,7 @@ public class WxPayService extends BasePayService<WxPayConfigStorage> {
         parameters.put("total_fee", Util.conversionCentAmount(refundOrder.getTotalAmount()));
         parameters.put("refund_fee", Util.conversionCentAmount(refundOrder.getRefundAmount()));
         parameters.put("op_user_id", payConfigStorage.getPid());
+        setParameters(parameters, "notify_url",  payConfigStorage.getNotifyUrl());
 
         //设置签名
         setSign(parameters);

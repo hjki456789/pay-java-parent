@@ -1,4 +1,4 @@
-第三方支付对接全能支付Java开发工具包.优雅的轻量级支付模块集成支付对接支付整合（微信,支付宝,银联,友店,富友,跨境支付paypal,payoneer(P卡派安盈)易极付）app,扫码,即时到帐刷卡付条码付转账服务商模式、支持多种支付类型多支付账户，支付与业务完全剥离，简单几行代码即可实现支付，简单快速完成支付模块的开发，可轻松嵌入到任何系统里 目前仅是一个开发工具包（即SDK），只提供简单Web实现，建议使用maven或gradle引用本项目即可使用本SDK提供的各种支付相关的功能 
+全能第三方支付对接Java开发工具包.优雅的轻量级支付模块集成支付对接支付整合（微信,支付宝,银联,友店,富友,跨境支付paypal,payoneer(P卡派安盈)易极付）app,扫码,网页支付刷卡付条码付刷脸付转账服务商模式、支持多种支付类型多支付账户，支付与业务完全剥离，简单几行代码即可实现支付，简单快速完成支付模块的开发，可轻松嵌入到任何系统里 目前仅是一个开发工具包（即SDK），只提供简单Web实现，建议使用maven或gradle引用本项目即可使用本SDK提供的各种支付相关的功能 
 
 
 ### 特性
@@ -15,15 +15,13 @@
      3. pay-java-*  具体的支付实现库
      
 ### Maven配置
-
 具体支付模块 "{module-name}" 为具体的支付渠道的模块名 pay-java-ali，pay-java-wx等
 
 ```xml
-
 <dependency>
     <groupId>com.egzosn</groupId>
     <artifactId>{module-name}</artifactId>
-    <version>2.12.7</version>
+    <version>2.12.9</version>
 </dependency>
 
 ```
@@ -31,17 +29,18 @@
 * 码云：https://gitee.com/egzosn/pay-java-parent
 * GitHub：https://github.com/egzosn/pay-java-parent
 
-#### spring-boot-starter-pay 是一个基于spring-boot实现自动化配置的支付对接，让你可以不用理解支付怎么对接，只需要专注你的业务
+#### 基于spring-boot实现自动化配置的支付对接，让你真正做到一行代码实现支付聚合，让你可以不用理解支付怎么对接，只需要专注你的业务  全能第三方支付对接spring-boot-starter-pay开发工具包
 * 码云：https://gitee.com/egzosn/pay-spring-boot-starter-parent
 * GitHub：https://github.com/egzosn/pay-spring-boot-starter-parent
 
-### 使用
-这里不多说直接上代码 
-
+##### 开源中国项目地址
+如果你觉得项目对你有帮助，也点击下进入后点击收藏呗
+* 基础支付聚合组件[pay-java-parent](https://www.oschina.net/p/pay-java-parent)
+* spring-boot-starter自动化配置支付聚合组件 [pay-spring-boot-starter](https://www.oschina.net/p/spring-boot-starter-pay)
 
 ###### 支付教程 
 
- * [基础模块支付宝微信讲解](https://github.com/egzosn/pay-java-parent/wikis/Home)
+ * [基础模块支付宝微信讲解](https://gitee.com/egzosn/pay-java-parent/wikis/Home)
  * [银联](pay-java-union?dir=1&filepath=pay-java-union)
  * [payoneer](pay-java-payoneer?dir=1&filepath=pay-java-payoneer)
  * [paypal](pay-java-paypal?dir=1&filepath=pay-java-paypal)
@@ -68,3 +67,4 @@ E-Mail：egzosn@gmail.com
 
 QQ群：542193977
 
+微信群: ![微信群](https://www.egzosn.com/images/wx.jpg "wx.jpg")
