@@ -12,11 +12,9 @@ import com.egzosn.pay.common.exception.PayErrorException;
 import com.egzosn.pay.common.http.HttpConfigStorage;
 import com.egzosn.pay.common.http.UriVariables;
 import com.egzosn.pay.common.util.DateUtils;
-import com.egzosn.pay.common.util.MatrixToImageWriter;
 import com.egzosn.pay.common.util.Util;
 import com.egzosn.pay.common.util.sign.SignUtils;
 import com.egzosn.pay.common.util.str.StringUtils;
-import java.awt.image.BufferedImage;
 import java.math.BigDecimal;
 import java.util.*;
 
@@ -67,6 +65,7 @@ public class AliPayService extends BasePayService<AliPayConfigStorage> {
      *
      * @return 请求地址
      */
+    @Override
     public String getReqUrl(TransactionType transactionType) {
         return payConfigStorage.isTest() ? DEV_REQ_URL : HTTPS_REQ_URL;
     }
@@ -214,10 +213,10 @@ public class AliPayService extends BasePayService<AliPayConfigStorage> {
             case APP:
                 bizContent.put(PASSBACK_PARAMS, order.getAddition());
                 bizContent.put(PRODUCT_CODE, "QUICK_MSECURITY_PAY");
-                orderInfo.put(RETURN_URL, payConfigStorage.getReturnUrl());
                 break;
             case BAR_CODE:
             case WAVE_CODE:
+            case SECURITY_CODE:
                 bizContent.put("scene", order.getTransactionType().toString().toLowerCase());
                 bizContent.put(PRODUCT_CODE, "FACE_TO_FACE_PAYMENT");
                 bizContent.put("auth_code", order.getAuthCode());
@@ -228,7 +227,8 @@ public class AliPayService extends BasePayService<AliPayConfigStorage> {
             bizContent.put("timeout_express", DateUtils.minutesRemaining(order.getExpirationTime()) + "m");
         }
         orderInfo.put(BIZ_CONTENT, JSON.toJSONString(bizContent));
-        return orderInfo;
+
+        return  preOrderHandler(orderInfo, order);
     }
 
     /**
@@ -291,23 +291,22 @@ public class AliPayService extends BasePayService<AliPayConfigStorage> {
         return formHtml.toString();
     }
 
+
+
     /**
-     * 生成二维码支付
+     * 获取输出二维码信息,
      *
      * @param order 发起支付的订单信息
-     * @return 返回图片信息，支付时需要的
+     * @return 返回二维码信息,，支付时需要的
      */
     @Override
-    public BufferedImage genQrPay(PayOrder order) {
-
+    public String getQrPay(PayOrder order){
         Map<String, Object> orderInfo = orderInfo(order);
-
-
         //预订单
         JSONObject result = getHttpRequestTemplate().postForObject(getReqUrl() + "?" + UriVariables.getMapToParameters(orderInfo), null, JSONObject.class);
         JSONObject response = result.getJSONObject("alipay_trade_precreate_response");
         if (SUCCESS_CODE.equals(response.getString(CODE))) {
-            return MatrixToImageWriter.writeInfoToJpgBuff(response.getString("qr_code"));
+            return response.getString("qr_code");
         }
         throw new PayErrorException(new PayException(response.getString(CODE), response.getString("msg"), result.toJSONString()));
 

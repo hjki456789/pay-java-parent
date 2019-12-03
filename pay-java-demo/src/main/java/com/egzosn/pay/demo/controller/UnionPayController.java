@@ -48,15 +48,15 @@ public class UnionPayController {
         //是否为证书签名
         unionPayConfigStorage.setCertSign(true);
         //中级证书路径
-        unionPayConfigStorage.setAcpMiddleCert("D:/certs/acp_test_middle.cer");
+        unionPayConfigStorage.setAcpMiddleCert("http://www.egzosn.com/certs/acp_test_middle.cer");
         //根证书路径
-        unionPayConfigStorage.setAcpRootCert("D:/certs/acp_test_root.cer");
+        unionPayConfigStorage.setAcpRootCert("http://www.egzosn.com/certs/acp_test_root.cer");
         // 私钥证书路径
-        unionPayConfigStorage.setKeyPrivateCert("D:/certs/acp_test_sign.pfx");
+        unionPayConfigStorage.setKeyPrivateCert("http://www.egzosn.com/certs/acp_test_sign.pfx");
         //私钥证书对应的密码
         unionPayConfigStorage.setKeyPrivateCertPwd("000000");
         //设置证书对应的存储方式，这里默认为文件地址
-        unionPayConfigStorage.setCertStoreType(CertStoreType.PATH);
+        unionPayConfigStorage.setCertStoreType(CertStoreType.URL);
 
 
 
@@ -157,7 +157,18 @@ public class UnionPayController {
         ImageIO.write(service.genQrPay( new PayOrder("订单title", "摘要", null == price ? new BigDecimal(0.01) : price, System.currentTimeMillis()+"", UnionTransactionType.APPLY_QR_CODE)), "JPEG", baos);
         return baos.toByteArray();
     }
-
+    /**
+     * 获取二维码地址
+     * 二维码支付
+     * @param price       金额
+     * @return 二维码图像
+     * @throws IOException IOException
+     */
+    @RequestMapping(value = "getQrPay.json")
+    public String getQrPay(BigDecimal price) throws IOException {
+        //获取对应的支付账户操作工具（可根据账户id）
+        return service.getQrPay( new PayOrder("订单title", "摘要", null == price ? new BigDecimal(0.01) : price, System.currentTimeMillis()+"", UnionTransactionType.APPLY_QR_CODE));
+    }
 
     /**
      * 刷卡付,pos主动扫码付款(条码付)  CONSUME

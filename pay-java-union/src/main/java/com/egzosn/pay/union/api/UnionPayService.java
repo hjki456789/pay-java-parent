@@ -60,7 +60,7 @@ public class UnionPayService extends BasePayService<UnionPayConfigStorage> {
     /**
      * 证书解释器
      */
-    private CertDescriptor certDescriptor = null;
+    private CertDescriptor certDescriptor;
     /**
      * 构造函数
      *
@@ -288,7 +288,7 @@ public class UnionPayService extends BasePayService<UnionPayConfigStorage> {
                 params.put(SDKConstants.param_payTimeout, getPayTimeout(order.getExpirationTime()));
                 params.put("orderDesc", order.getSubject());
         }
-
+        params =  preOrderHandler(params, order);
         return setSign(params);
     }
 
@@ -386,7 +386,7 @@ public class UnionPayService extends BasePayService<UnionPayConfigStorage> {
      * @return 返回图片信息，支付时需要的
      */
     @Override
-    public BufferedImage genQrPay(PayOrder order) {
+    public String getQrPay(PayOrder order) {
         Map<String, Object> params = orderInfo(order);
         String responseStr = getHttpRequestTemplate().postForObject(this.getBackTransUrl(), params, String.class);
         Map<String, Object> response = UriVariables.getParametersToMap(responseStr);
@@ -396,7 +396,7 @@ public class UnionPayService extends BasePayService<UnionPayConfigStorage> {
         if (this.verify(response)) {
             if (SDKConstants.OK_RESP_CODE.equals(response.get(SDKConstants.param_respCode))) {
                 //成功
-                return MatrixToImageWriter.writeInfoToJpgBuff((String) response.get(SDKConstants.param_qrCode));
+                return (String) response.get(SDKConstants.param_qrCode);
             }
             throw new PayErrorException(new PayException((String) response.get(SDKConstants.param_respCode), (String) response.get(SDKConstants.param_respMsg), responseStr));
         }

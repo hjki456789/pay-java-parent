@@ -93,6 +93,7 @@
             /*-----------扫码付-------------------*/
            payOrder.setTransactionType(WxTransactionType.NATIVE);
            //获取扫码付的二维码
+//        String image = service.getQrPay(payOrder);
            BufferedImage image = service.genQrPay(payOrder);
            /*-----------/扫码付-------------------*/
 
@@ -193,7 +194,7 @@
 
 ```java
         
-      Map result = service..query("微信单号", "我方系统单号");
+      Map result = service.query("微信单号", "我方系统单号");
 
 ```
 
