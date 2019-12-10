@@ -142,12 +142,7 @@ public class XML {
         for (int idx = 0; idx < children.getLength(); ++idx) {
             Node node = children.item(idx);
             NodeList nodeList = node.getChildNodes();
-            if (node.getNodeType() == Node.ELEMENT_NODE && nodeList.getLength() <= 1) {
-                if (null == json) {
-                    json = new JSONObject();
-                }
-                ((JSONObject) json).put(node.getNodeName(), node.getTextContent());
-            } else if (node.getNodeType() == Node.ELEMENT_NODE && nodeList.getLength() > 1) {
+            if (node.getNodeType() == Node.ELEMENT_NODE && nodeList.getLength() >= 1 &&nodeList.item(0).hasChildNodes() ) {
                 if (null == json) {
                     json = new JSONObject();
                 }
@@ -167,6 +162,11 @@ public class XML {
                     c.put(node.getNodeName(), getChildren(nodeList));
                     ((JSONArray) json).add(c);
                 }
+            }else if (node.getNodeType() == Node.ELEMENT_NODE && nodeList.getLength() <= 1) {
+                if (null == json) {
+                    json = new JSONObject();
+                }
+                ((JSONObject) json).put(node.getNodeName(), node.getTextContent());
             }
         }
 
