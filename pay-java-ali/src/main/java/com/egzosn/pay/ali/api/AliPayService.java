@@ -200,7 +200,6 @@ public class AliPayService extends BasePayService<AliPayConfigStorage> {
         bizContent.put("total_amount", Util.conversionAmount(order.getPrice()).toString());
         switch ((AliTransactionType) order.getTransactionType()) {
             case PAGE:
-            case DIRECT:
                 bizContent.put(PASSBACK_PARAMS, order.getAddition());
                 bizContent.put(PRODUCT_CODE, "FAST_INSTANT_TRADE_PAY");
                 orderInfo.put(RETURN_URL, payConfigStorage.getReturnUrl());
@@ -227,7 +226,7 @@ public class AliPayService extends BasePayService<AliPayConfigStorage> {
             bizContent.put("timeout_express", DateUtils.minutesRemaining(order.getExpirationTime()) + "m");
         }
         orderInfo.put(BIZ_CONTENT, JSON.toJSONString(bizContent));
-
+        orderInfo.putAll(order.getAttr());
         return  preOrderHandler(orderInfo, order);
     }
 
@@ -272,6 +271,16 @@ public class AliPayService extends BasePayService<AliPayConfigStorage> {
         return PayOutMessage.TEXT().content("success").build();
     }
 
+    @Override
+    public String toPay(PayOrder order) {
+        if (null == order.getTransactionType()) {
+            order.setTransactionType(AliTransactionType.PAGE);
+        } else if (order.getTransactionType() != AliTransactionType.PAGE && order.getTransactionType() != AliTransactionType.WAP) {
+            throw new PayErrorException(new PayException("-1", "错误的交易类型:" + order.getTransactionType()));
+        }
+        return super.toPay(order);
+    }
+
     /**
      * @param orderInfo 发起支付的订单信息
      * @param method    请求方式  "post" "get",
@@ -301,6 +310,7 @@ public class AliPayService extends BasePayService<AliPayConfigStorage> {
      */
     @Override
     public String getQrPay(PayOrder order){
+        order.setTransactionType(AliTransactionType.SWEEPPAY);
         Map<String, Object> orderInfo = orderInfo(order);
         //预订单
         JSONObject result = getHttpRequestTemplate().postForObject(getReqUrl() + "?" + UriVariables.getMapToParameters(orderInfo), null, JSONObject.class);
@@ -320,6 +330,12 @@ public class AliPayService extends BasePayService<AliPayConfigStorage> {
      */
     @Override
     public Map<String, Object> microPay(PayOrder order) {
+        if (null == order.getTransactionType()){
+            order.setTransactionType(AliTransactionType.BAR_CODE);
+        }else if (order.getTransactionType() != AliTransactionType.BAR_CODE && order.getTransactionType() != AliTransactionType.WAVE_CODE && order.getTransactionType() != AliTransactionType.SECURITY_CODE){
+            throw new PayErrorException(new PayException("-1", "错误的交易类型:" + order.getTransactionType()));
+        }
+
         Map<String, Object> orderInfo = orderInfo(order);
         //预订单
         JSONObject result = getHttpRequestTemplate().postForObject(getReqUrl() + "?" + UriVariables.getMapToParameters(orderInfo), null, JSONObject.class);
@@ -513,7 +529,7 @@ public class AliPayService extends BasePayService<AliPayConfigStorage> {
         //获取公共参数
         Map<String, Object> parameters = getPublicParameters(transactionType);
         //设置请求参数的集合
-        parameters.put(BIZ_CONTENT, getContentToJson(tradeNoOrBillDate.toString(), outTradeNoBillType));
+        parameters.put(BIZ_CONTENT, getContentToJson((String) tradeNoOrBillDate, outTradeNoBillType));
         //设置签名
         setSign(parameters);
         return requestTemplate.getForObject(getReqUrl() + "?" + UriVariables.getMapToParameters(parameters), JSONObject.class);

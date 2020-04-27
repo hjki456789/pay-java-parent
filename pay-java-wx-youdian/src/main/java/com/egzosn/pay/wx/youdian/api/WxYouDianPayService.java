@@ -227,6 +227,7 @@ public class WxYouDianPayService extends BasePayService<WxYouDianPayConfigStorag
         Map<String, Object> data = new TreeMap<>();
         data.put("access_token",  getAccessToken());
         data.put("paymoney", Util.conversionAmount(order.getPrice()).toString());
+        data.putAll(order.getAttr());
         data =  preOrderHandler(data, order);
         String apbNonce = SignUtils.randomStr();
         String sign = createSign(SignUtils.parameterText(data, "") + apbNonce, payConfigStorage.getInputCharset());
@@ -336,6 +337,7 @@ public class WxYouDianPayService extends BasePayService<WxYouDianPayConfigStorag
 
     @Override
     public String getQrPay(PayOrder order) {
+        order.setTransactionType(YoudianTransactionType.NATIVE);
         JSONObject orderInfo = orderInfo(order);
         return (String) orderInfo.get("code_url");
     }
@@ -347,6 +349,7 @@ public class WxYouDianPayService extends BasePayService<WxYouDianPayConfigStorag
      */
     @Override
     public Map<String, Object> microPay(PayOrder order) {
+        order.setTransactionType(YoudianTransactionType.MICROPAY);
         JSONObject orderInfo = orderInfo(order);
         return orderInfo;
     }
