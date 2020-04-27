@@ -164,7 +164,7 @@ public class XML {
                     c.put(node.getNodeName(), getChildren(nodeList));
                     ((JSONArray) json).add(c);
                 }
-            } else if (node.getNodeType() == Node.ELEMENT_NODE ) {
+            }else if (node.getNodeType() == Node.ELEMENT_NODE && nodeList.getLength() <= 1) {
                 if (null == json) {
                     json = new JSONObject();
                 }
